@@ -13,7 +13,6 @@ bias = {}
 
 numY = 0
 numFeatures = 0
-lambdaa = 0.001
 rate = 0.001  # rate for change
 ##
 # Gradient descent using backpropogation
@@ -151,7 +150,7 @@ def train(X, Y, nodes, layers, iters):
         db[0] = np.sum(d[0], axis=0)
 
         for j in range(layers+1):
-            dw[j] += lambdaa * w[j]
+            dw[j] += rate * w[j]
             w[j] += -rate * dw[j]
             b[j] += -rate * db[j]
 
@@ -181,7 +180,7 @@ def train(X, Y, nodes, layers, iters):
             for j in range(layers+1):
                 squares_sigma += np.sum(np.square(w[j]))
 
-            diff += lambdaa / 2 * (squares_sigma)
+            diff += rate / 2 * (squares_sigma)
             loss = 1.0 / len(X) * diff
             x = ''
             if loss < 10:
@@ -193,7 +192,7 @@ def train(X, Y, nodes, layers, iters):
     return w, b
 
 
-def predict(X):
+def test(X):
     """
         predict function
     """
@@ -210,7 +209,6 @@ def predict(X):
 
     e_z = np.exp(z[len(weights) - 1])
     p = e_z / np.sum(e_z, axis=1, keepdims=True)
-    # print "p = ", p
     return np.argmax(p, axis=1)  # Return class with max probability
 
 
@@ -240,11 +238,11 @@ def main():
             global weights, bias
             weights, bias = train(X_s1, Y_s1, nodes, layers, iters)
 
-            Y_out = predict(X_s2)
+            Y_out = test(X_s2)
             print 'Accuracy:', accuracy_score(Y_s2, Y_out)
             print classification_report(Y_s2, Y_out)
 
-            Y_out = predict(X_s1)
+            Y_out = test(X_s1)
             print 'Accuracy:', accuracy_score(Y_s1, Y_out)
             print classification_report(Y_s1, Y_out)
 
@@ -268,7 +266,7 @@ def main():
                 global bias
                 bias = pickle.load(filename)
 
-            Y_out = predict(X)
+            Y_out = test(X)
             print 'Accuracy:', accuracy_score(Y, Y_out)
             print classification_report(Y, Y_out)
 
