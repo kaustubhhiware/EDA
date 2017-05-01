@@ -130,6 +130,24 @@ def train(X, Y, nodes, layers, iters):
         sigma = np.sum(e_z, axis=1, keepdims=True)
         p = e_z / sigma  # Probability
 
+        if i % 1000 == 0:
+            # calculate loss
+
+            logP = -np.log(p[range(len(X)), Y])
+            diff = np.sum(logP)
+
+            squares_sigma = 0.00
+            for j in range(layers+1):
+                squares_sigma += np.sum(np.square(w[j]))
+
+            diff += rate / 2 * (squares_sigma)
+            loss = 1.0 / len(X) * diff
+            x = ''
+            if loss < 10:
+                x = ' '
+            # print('Loss after iteration %i: %f' % (i, loss))
+            print '|', "%05d" % i, '|', x, "{:.5f}".format(loss), '|'
+
         d[layers] = p
         d[layers][range(len(X)), Y] -= 1
 
@@ -153,40 +171,6 @@ def train(X, Y, nodes, layers, iters):
             dw[j] += rate * w[j]
             w[j] += -rate * dw[j]
             b[j] += -rate * db[j]
-
-        if i % 1000 == 0:
-            # calculate loss
-
-            z = {}
-            a = {}
-            z[0] = X.dot(w[0]) + b[0]
-            a[0] = np.tanh(z[0])
-
-            for i in range(layers-1):
-                z[i+1] = a[i].dot(w[i+1]) + b[i+1]
-                a[i+1] = np.tanh(z[i+1])
-
-            z[layers] = a[layers-1].dot(w[layers]) + b[layers]
-
-            e_z = np.exp(z[layers])  # e^z
-            # sum over each vector
-            sigma = np.sum(e_z, axis=1, keepdims=True)
-            p = e_z / sigma  # Probability
-
-            logP = -np.log(p[range(len(X)), Y])
-            diff = np.sum(logP)
-
-            squares_sigma = 0.00
-            for j in range(layers+1):
-                squares_sigma += np.sum(np.square(w[j]))
-
-            diff += rate / 2 * (squares_sigma)
-            loss = 1.0 / len(X) * diff
-            x = ''
-            if loss < 10:
-                x = ' '
-            # print('Loss after iteration %i: %f' % (i, loss))
-            print '|', "%05d" % i, '|', x, "{:.5f}".format(loss), '|'
 
     print '+-------+-----------+'
     return w, b
