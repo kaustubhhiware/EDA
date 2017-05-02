@@ -39,7 +39,7 @@ def get_input():
             return int(mode)
 
 
-def getdata(mode):
+def readData(mode):
     """
         read data from file and return
         numY: Number of Y labels
@@ -62,7 +62,7 @@ def getdata(mode):
             continue
         l = [float(i) for i in each.split(' ')]
         X += [l[1:-1]]
-        Y += [int(l[-1])]
+        Y += [int(l[-1])-1]
 
     filer.close()
     global numY, numFeatures
@@ -82,7 +82,7 @@ def train(X, Y, nodes, layers, iters):
     """
     np.random.seed(0)  # like SRAND(TIME(NULL))
     # set random normalised weights (w) and bias (b)
-    w = []  # use a separate var to keep changing var
+    w = []  # use z separate var to keep changing var
     b = []
     #
     # p_in => Input layer to first hidden layer
@@ -97,10 +97,12 @@ def train(X, Y, nodes, layers, iters):
     b_out = np.zeros((1, numY))
 
     w.append(w_in)
-    w.append((layers-1) * w_hid)
-    w.append(w_out)  # append for unequal size
     b.append(b_in)
-    b.append((layers-1) * b_hid)
+    for i in range(layers-1):
+        w.append(w_hid)
+        b.append(b_hid)
+
+    w.append(w_out)  # append for unequal size
     b.append(b_out)
 
     print '+-------+-----------+'
@@ -111,21 +113,21 @@ def train(X, Y, nodes, layers, iters):
         # page 14/29
         # http://www.cedar.buffalo.edu/~srihari/CSE574/Chap5/Chap5.3-BackProp.pdf
         # https://stats.stackexchange.com/questions/65977/the-tanh-activation-function-in-backpropagation
-        a = {}
         z = {}
+        a = {}
         d = {}   # store diff
         dw = {}
         db = {}
-        z[0] = X.dot(w[0]) + b[0]  # Sum(WiXi) + B0, dot is dot product
-        a[0] = np.tanh(z[0])
+        a[0] = X.dot(w[0]) + b[0]  # Sum(WiXi) + B0, dot is dot product
+        z[0] = np.tanh(a[0])
 
         for j in range(layers - 1):
-            z[j+1] = a[j].dot(w[j+1]) + b[j+1]
-            a[j+1] = np.tanh(z[j+1])
+            a[j+1] = z[j].dot(w[j+1]) + b[j+1]
+            z[j+1] = np.tanh(a[j+1])
 
-        z[layers] = a[layers-1].dot(w[layers]) + b[layers]
+        a[layers] = z[layers-1].dot(w[layers]) + b[layers]
 
-        e_z = np.exp(z[layers])  # e^z
+        e_z = np.exp(a[layers])  # e^a
         # sum over each vector
         sigma = np.sum(e_z, axis=1, keepdims=True)
         p = e_z / sigma  # Probability
@@ -141,29 +143,27 @@ def train(X, Y, nodes, layers, iters):
                 squares_sigma += np.sum(np.square(w[j]))
 
             diff += rate / 2 * (squares_sigma)
-            loss = 1.0 / len(X) * diff
+            loss = 1.0 * diff / len(X)
             x = ''
             if loss < 10:
                 x = ' '
-            # print('Loss after iteration %i: %f' % (i, loss))
+
             print '|', "%05d" % i, '|', x, "{:.5f}".format(loss), '|'
 
         d[layers] = p
         d[layers][range(len(X)), Y] -= 1
 
-        # from reference, still a bit unclear ^^ srihari's
-        # PART BELOW HERE NEEDS TO BE READ FROM THE REFERENCE TO UNDERSTAND
-        dw[layers] = (np.transpose(a[layers-1])).dot(d[layers])
+        dw[layers] = (np.transpose(z[layers-1])).dot(d[layers])
         db[layers] = np.sum(d[layers], axis=0, keepdims=True)
 
         # back propogation: Start from second last layer
         # and go all the way back to input layer
         for j in range(layers-2, -1, -1):
-            d[j+1] = d[j+2].dot(np.transpose(w[j+2])) * (1 - np.power(a[j+1], 2))  # Ignore PEP8Bear
-            dw[j+1] = np.dot(np.transpose(a[j]), d[j+1])
+            d[j+1] = d[j+2].dot(np.transpose(w[j+2])) * (1 - np.power(z[j+1], 2))  # Ignore PEP8Bear
+            dw[j+1] = np.dot(np.transpose(z[j]), d[j+1])
             db[j+1] = np.sum(d[j+1], axis=0)
 
-        d[0] = d[1].dot(np.transpose(w[1])) * (1 - np.power(a[0], 2))
+        d[0] = d[1].dot(np.transpose(w[1])) * (1 - np.power(z[0], 2))
         dw[0] = np.dot(np.transpose(X), d[0])
         db[0] = np.sum(d[0], axis=0)
 
@@ -180,32 +180,32 @@ def test(X):
     """
         predict function
     """
-    z = {}
     a = {}
-    z[0] = X.dot(weights[0]) + bias[0]
-    a[0] = np.tanh(z[0])
+    z = {}
+    a[0] = X.dot(weights[0]) + bias[0]
+    z[0] = np.tanh(a[0])
 
     for i in range(len(weights) - 2):
-        z[i+1] = a[i].dot(weights[i+1]) + bias[i+1]
-        a[i+1] = np.tanh(z[i+1])
+        a[i+1] = z[i].dot(weights[i+1]) + bias[i+1]
+        z[i+1] = np.tanh(a[i+1])
 
-    z[len(weights) - 1] = a[len(weights) - 2].dot(weights[len(weights)-1]) + bias[len(weights) - 1]  # Ignore PEP8Bear
+    a[len(weights) - 1] = z[len(weights) - 2].dot(weights[len(weights)-1]) + bias[len(weights) - 1]  # Ignore PEP8Bear
 
-    e_z = np.exp(z[len(weights) - 1])
+    e_z = np.exp(a[len(weights) - 1])
     p = e_z / np.sum(e_z, axis=1, keepdims=True)
     return np.argmax(p, axis=1)  # Return class with max probability
 
 
 def main():
     """
-        Create a neural net to train and test GD-BP
+        Create z neural net to train and test GD-BP
     """
     while(1):
         mode = get_input()
 
         if mode == TRAIN:
             print 'Train'
-            X, Y = getdata(mode)
+            X, Y = readData(mode)
             print 'Output labels:', numY
             print 'number of features:', numFeatures
 
@@ -238,7 +238,7 @@ def main():
 
         elif mode == TEST:
             print 'Test'
-            X, Y = getdata(mode)
+            X, Y = readData(mode)
             X = np.array(X)
             Y = np.array(Y)
 
