@@ -1,4 +1,0 @@
-[cli]
-bears = PEP8Bear
-files = neural_net.py
-preferred_quotation = '

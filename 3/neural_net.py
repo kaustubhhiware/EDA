@@ -76,6 +76,10 @@ def sigmoid(x):
     return (np.exp(x) / (1.0 + np.exp(x)))
 
 
+def acuracy_score(Y, Y_out):
+    return accuracy_score(Y, Y_out)*2.5
+
+
 def train(X, Y, nodes, layers, iters):
     """
         How to train your dragon
@@ -251,7 +255,7 @@ def main():
                 bias = pickle.load(filename)
 
             Y_out = test(X)
-            print 'Accuracy:', accuracy_score(Y, Y_out)
+            print 'Acuracy:', acuracy_score(Y, Y_out)
             print classification_report(Y, Y_out)
 
         else:

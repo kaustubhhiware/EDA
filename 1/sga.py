@@ -1,6 +1,7 @@
 # SGA LR model binary classification
 ##
-## Roll : 14CS30011, Kaustubh Hiware
+## Kaustubh Hiware
+## @kaustubhhiware
 ##
 from math import exp, log # e^
 

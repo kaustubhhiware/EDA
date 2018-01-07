@@ -1,5 +1,8 @@
 /*The following file is for computing the mean vector for each class */
-// run with - spark-shell -i 14cs30011-1.scala
+// run with - spark-shell -i mean_vec.scala
+
+// Author:  Kaustubh Hiware
+// @kaustubhhiware
 
 // load data
 val data = sc.textFile("mean.txt")

@@ -1,5 +1,9 @@
 /*The following file is for computing the Pearson correlation coefficient*/
-// run with - spark-shell -i 14cs30011-2.scala
+// run with - spark-shell -i pearson.scala
+
+// Author:  Kaustubh Hiware
+// @kaustubhhiware
+
 
 // pearson coefficient = 
 //  n * sigma( X[i] * Y[i] ) - sigma(X[i]) * sigma(Y[i]) divided by
